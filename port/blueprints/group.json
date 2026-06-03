@@ -1,0 +1,73 @@
+{
+  "identifier": "group",
+  "title": "Group",
+  "description": "Organisation / business unit for DORA roll-ups",
+  "icon": "Home",
+  "schema": {
+    "properties": {},
+    "required": []
+  },
+  "calculationProperties": {
+    "change_failure_rate": {
+      "title": "Change failure rate",
+      "calculation": "if (.properties.total_incidents != null and .properties.total_monthly_deployments != null) then (.properties.total_incidents / .properties.total_monthly_deployments) else 0 end",
+      "type": "number"
+    }
+  },
+  "aggregationProperties": {
+    "total_incidents": {
+      "title": "Total Monthly Incidents",
+      "type": "number",
+      "target": "dora_incident",
+      "calculationSpec": {
+        "calculationBy": "entities",
+        "func": "count"
+      }
+    },
+    "mean_time_to_recovery": {
+      "title": "Mean Time to Recovery",
+      "type": "number",
+      "target": "dora_incident",
+      "calculationSpec": {
+        "func": "average",
+        "averageOf": "total",
+        "property": "time_to_resolve",
+        "measureTimeBy": "resolved_at",
+        "calculationBy": "property"
+      }
+    },
+    "deployment_frequency": {
+      "title": "Deployment Frequency",
+      "type": "number",
+      "target": "dora_deployment",
+      "calculationSpec": {
+        "func": "average",
+        "averageOf": "week",
+        "measureTimeBy": "deployment_time",
+        "calculationBy": "entities"
+      }
+    },
+    "total_monthly_deployments": {
+      "title": "Total Monthly deployments",
+      "type": "number",
+      "target": "dora_deployment",
+      "calculationSpec": {
+        "func": "count",
+        "calculationBy": "entities"
+      }
+    },
+    "lead_time_for_change": {
+      "title": "Lead Time for Change",
+      "type": "number",
+      "target": "dora_deployment",
+      "calculationSpec": {
+        "func": "average",
+        "averageOf": "total",
+        "property": "lead_time_hours",
+        "measureTimeBy": "deployment_time",
+        "calculationBy": "property"
+      }
+    }
+  },
+  "relations": {}
+}

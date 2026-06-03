@@ -1,0 +1,124 @@
+{
+  "identifier": "skill_request",
+  "title": "Skill Request",
+  "icon": "RequestService",
+  "description": "A pending create/update request for a skill, submitted via the Port UI and routed through review before it is applied to the live skill catalog.",
+  "schema": {
+    "properties": {
+      "request_type": {
+        "type": "string",
+        "title": "Request Type",
+        "enum": ["create", "update"],
+        "enumColors": { "create": "green", "update": "blue" }
+      },
+      "status": {
+        "type": "string",
+        "title": "Status",
+        "enum": ["pending_review", "approved", "denied", "applied"],
+        "enumColors": {
+          "pending_review": "yellow",
+          "approved": "green",
+          "denied": "red",
+          "applied": "purple"
+        },
+        "default": "pending_review"
+      },
+      "skill_name": {
+        "type": "string",
+        "title": "Skill Name"
+      },
+      "skill_content": {
+        "type": "string",
+        "title": "SKILL.md Content",
+        "format": "markdown",
+        "description": "The proposed full SKILL.md content (the main skill file)"
+      },
+      "files": {
+        "type": "array",
+        "title": "Additional Files",
+        "description": "Supporting files that make up the skill (references, scripts, assets, other). SKILL.md itself lives in skill_content.",
+        "items": {
+          "type": "object",
+          "properties": {
+            "path": { "type": "string" },
+            "content": { "type": "string" },
+            "type": {
+              "type": "string",
+              "enum": ["reference", "script", "asset", "other"]
+            }
+          }
+        }
+      },
+      "create_method": {
+        "type": "string",
+        "title": "Create Method",
+        "description": "How the author produced this draft",
+        "enum": ["ai", "write", "upload"],
+        "enumColors": { "ai": "purple", "write": "blue", "upload": "green" }
+      },
+      "ai_prompt": {
+        "type": "string",
+        "title": "AI Prompt",
+        "description": "The prompt used when the draft was generated with AI (if applicable)"
+      },
+      "change_summary": {
+        "type": "string",
+        "title": "What Changed?",
+        "description": "Short human summary of the proposed change"
+      },
+      "location": {
+        "type": "string",
+        "title": "Location",
+        "enum": ["global", "project"],
+        "default": "project"
+      },
+      "skill_path": {
+        "type": "string",
+        "title": "Skill Path",
+        "description": "GitLab file path (for synced skills) or Port entity URI (for UI-created skills)"
+      },
+      "source": {
+        "type": "string",
+        "title": "Source",
+        "enum": ["port_ui", "gitlab"],
+        "enumColors": { "port_ui": "turquoise", "gitlab": "orange" },
+        "default": "port_ui"
+      },
+      "version": {
+        "type": "string",
+        "title": "Version"
+      },
+      "submitted_at": {
+        "type": "string",
+        "format": "date-time",
+        "title": "Submitted At"
+      }
+    },
+    "required": ["request_type", "skill_name", "skill_content"]
+  },
+  "mirrorProperties": {},
+  "calculationProperties": {},
+  "aggregationProperties": {},
+  "relations": {
+    "target_skill_files": {
+      "title": "Target Skill Files",
+      "description": "The existing skill_file entities being updated (empty for create requests). On approval the automation creates new skill_file entities and links them here.",
+      "target": "skill_file",
+      "required": false,
+      "many": true
+    },
+    "skill_group": {
+      "title": "Skill Group",
+      "description": "The group that owns this skill; its owning team are the reviewers",
+      "target": "skill_group",
+      "required": false,
+      "many": false
+    },
+    "requester": {
+      "title": "Requester",
+      "target": "_user",
+      "required": false,
+      "many": false
+    }
+  }
+}

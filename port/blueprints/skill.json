@@ -1,0 +1,140 @@
+{
+  "identifier": "skill",
+  "title": "Skill",
+  "icon": "Skill",
+  "schema": {
+    "properties": {
+      "references": {
+        "title": "References",
+        "type": "array",
+        "description": "Reference documents for the skill",
+        "items": {
+          "type": "object",
+          "properties": {
+            "path": { "type": "string" },
+            "content": { "type": "string" }
+          },
+          "required": ["path", "content"],
+          "additionalProperties": false
+        }
+      },
+      "assets": {
+        "title": "Assets",
+        "type": "array",
+        "description": "Asset/command files for the skill",
+        "items": {
+          "type": "object",
+          "properties": {
+            "path": { "type": "string" },
+            "content": { "type": "string" }
+          },
+          "required": ["path", "content"],
+          "additionalProperties": false
+        }
+      },
+      "scripts": {
+        "title": "Scripts",
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "path": { "type": "string" },
+            "content": { "type": "string" },
+            "description": { "type": "string" }
+          },
+          "required": ["path", "content"],
+          "additionalProperties": false
+        }
+      },
+      "additional_files": {
+        "title": "Additional Files",
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "path": { "type": "string" },
+            "content": { "type": "string" },
+            "description": { "type": "string" }
+          },
+          "required": ["path", "content"],
+          "additionalProperties": false
+        }
+      },
+      "status": {
+        "title": "Status",
+        "type": "string",
+        "enum": ["draft", "active", "deprecated"],
+        "enumColors": { "draft": "yellow", "active": "green", "deprecated": "red" }
+      },
+      "category": {
+        "title": "Category",
+        "type": "string",
+        "enum": ["development", "documentation", "testing", "deployment", "code-review", "configuration", "migration", "other"],
+        "enumColors": {
+          "development": "blue", "documentation": "purple", "testing": "orange",
+          "deployment": "turquoise", "code-review": "green", "configuration": "pink",
+          "migration": "bronze", "other": "lightGray"
+        }
+      },
+      "location": {
+        "title": "Location",
+        "type": "string",
+        "enum": ["global", "project"],
+        "enumColors": { "global": "purple", "project": "green" }
+      },
+      "scope": {
+        "title": "Scope",
+        "type": "string",
+        "enum": ["personal", "project", "global"],
+        "enumColors": { "personal": "blue", "project": "green", "global": "purple" }
+      }
+    },
+    "required": []
+  },
+  "mirrorProperties": {
+    "description": { "title": "Description", "path": "skill_version.description" },
+    "instructions": { "title": "Instructions", "path": "skill_version.skill_file.content" },
+    "version": { "title": "Version", "path": "skill_version.version" },
+    "team_name": { "title": "Team Name", "path": "owning_team.$title" }
+  },
+  "calculationProperties": {},
+  "aggregationProperties": {},
+  "relations": {
+    "skill_version": {
+      "title": "Skill Version",
+      "target": "skillVersion",
+      "required": false,
+      "many": false
+    },
+    "ai_agent": {
+      "title": "AI Agent",
+      "target": "_ai_agent",
+      "required": false,
+      "many": false
+    },
+    "created_by": {
+      "title": "Created By",
+      "target": "_user",
+      "required": false,
+      "many": false
+    },
+    "owning_team": {
+      "title": "Owning Team",
+      "target": "_team",
+      "required": false,
+      "many": false
+    },
+    "sourceRepo": {
+      "title": "Source Repository",
+      "target": "gitlabRepository",
+      "required": false,
+      "many": false
+    },
+    "sharedWithGroups": {
+      "title": "Shared With Groups",
+      "target": "group",
+      "required": false,
+      "many": true
+    }
+  }
+}

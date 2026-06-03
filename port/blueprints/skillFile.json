@@ -1,0 +1,33 @@
+{
+  "identifier": "skillFile",
+  "title": "Skill File",
+  "icon": "Markdown",
+  "schema": {
+    "properties": {
+      "content": {
+        "title": "Content",
+        "type": "string",
+        "format": "markdown",
+        "description": "Full content of the skill file (SKILL.md)"
+      },
+      "path": {
+        "title": "Path",
+        "type": "string",
+        "description": "Repository path to the skill file"
+      }
+    },
+    "required": ["content", "path"]
+  },
+  "mirrorProperties": {},
+  "calculationProperties": {},
+  "aggregationProperties": {},
+  "relations": {
+    "skillVersion": {
+      "title": "Skill Version",
+      "description": "The skill version this file belongs to",
+      "target": "skillVersion",
+      "required": true,
+      "many": false
+    }
+  }
+}

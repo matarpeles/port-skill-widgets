@@ -1,0 +1,51 @@
+{
+  "identifier": "skillVersion",
+  "title": "Skill Version",
+  "icon": "Version",
+  "schema": {
+    "properties": {
+      "version": {
+        "title": "Version",
+        "type": "string",
+        "description": "Semantic version of the skill"
+      },
+      "description": {
+        "title": "Description",
+        "type": "string",
+        "description": "What the skill does and when the model should use it"
+      }
+    },
+    "required": ["version"]
+  },
+  "mirrorProperties": {
+    "commit_date": {
+      "title": "Commit Date",
+      "path": "branch.last_commit_date"
+    }
+  },
+  "calculationProperties": {},
+  "aggregationProperties": {},
+  "relations": {
+    "skill": {
+      "title": "Skill",
+      "description": "The parent skill this version belongs to",
+      "target": "skill",
+      "required": true,
+      "many": false
+    },
+    "skillFile": {
+      "title": "Skill File",
+      "description": "The SKILL.md file for this version",
+      "target": "skillFile",
+      "required": false,
+      "many": false
+    },
+    "branch": {
+      "title": "Branch",
+      "description": "The GitLab branch this version was committed to",
+      "target": "gitlabBranch",
+      "required": false,
+      "many": false
+    }
+  }
+}

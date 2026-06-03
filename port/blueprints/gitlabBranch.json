@@ -1,0 +1,50 @@
+{
+  "identifier": "gitlabBranch",
+  "title": "GitLab Branch",
+  "icon": "GitLab",
+  "schema": {
+    "properties": {
+      "name": {
+        "type": "string",
+        "title": "Name"
+      },
+      "default": {
+        "type": "boolean",
+        "title": "Default",
+        "default": false
+      },
+      "protected": {
+        "type": "boolean",
+        "title": "Protected",
+        "default": false
+      },
+      "last_commit_id": {
+        "type": "string",
+        "title": "Last Commit ID",
+        "icon": "Git"
+      },
+      "last_contributor": {
+        "type": "string",
+        "title": "Last Contributor",
+        "icon": "User"
+      },
+      "last_commit_date": {
+        "type": "string",
+        "format": "date-time",
+        "title": "Last Commit Date"
+      }
+    },
+    "required": []
+  },
+  "mirrorProperties": {},
+  "calculationProperties": {},
+  "aggregationProperties": {},
+  "relations": {
+    "project": {
+      "title": "Repository",
+      "target": "gitlabRepository",
+      "required": false,
+      "many": false
+    }
+  }
+}

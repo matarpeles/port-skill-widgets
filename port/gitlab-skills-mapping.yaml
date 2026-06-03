@@ -1,0 +1,222 @@
+# GitLab file mappings for the Skill File → Skill Version → Skill model.
+# Merge these resources into your GitLab integration config (keep existing repo/project kinds).
+#
+# Skill slug = parent folder of SKILL.md (works for flat and nested paths)
+
+createMissingRelatedEntities: true
+deleteDependentEntities: false
+
+resources:
+  # ── branch → gitlabBranch (commit timestamp) ─────────────────────────────
+  - kind: branch
+    selector:
+      query: 'true'
+      defaultBranchOnly: true
+    port:
+      entity:
+        mappings:
+          identifier: |-
+            .__project.path_with_namespace + "/" + .name | gsub(" "; "")
+          title: |-
+            .__project.name + " / " + .name
+          blueprint: '"gitlabBranch"'
+          properties:
+            name: .name
+            default: .default
+            protected: .protected
+            last_commit_id: .commit.id
+            last_contributor: .commit.committer_email
+            last_commit_date: .commit.committed_date
+          relations:
+            project: |-
+              .__project.path_with_namespace | gsub(" "; "")
+  # ── SKILL.md → skillFile (content + path) ──────────────────────────────────
+  - kind: file
+    selector:
+      query: 'true'
+      files:
+        path: SKILL.md
+    port:
+      entity:
+        mappings:
+          identifier: |-
+            .repo.name + "-" + ((.file.path | split("/")) | .[-2]) + "-file"
+          title: |-
+            ((.file.path | split("/")) | .[-2]) + " (SKILL.md)"
+          blueprint: '"skillFile"'
+          properties:
+            content: .file.content
+            path: .file.path
+          relations:
+            skillVersion: |-
+              .repo.name + "-" + ((.file.path | split("/")) | .[-2])
+
+  # ── SKILL.md → skillVersion (version + description) ────────────────────────
+  - kind: file
+    selector:
+      query: 'true'
+      files:
+        path: SKILL.md
+    port:
+      entity:
+        mappings:
+          identifier: |-
+            .repo.name + "-" + ((.file.path | split("/")) | .[-2])
+          title: |-
+            ((.file.path | split("/")) | .[-2]) | gsub("-"; " ")
+          blueprint: '"skillVersion"'
+          properties:
+            version: |-
+              (.file.content | capture("(?m)^version:[[:space:]]*(?<v>.+)$") | .v // "1.0.0") | gsub("[[:space:]]+"; "")
+            description: |-
+              (
+                (.file.content | capture("(?m)^description:[[:space:]]*(?<d>.+)$") | .d) //
+                .file.file_name
+              )
+          relations:
+            skill: |-
+              .repo.name + "-" + ((.file.path | split("/")) | .[-2])
+            skillFile: |-
+              .repo.name + "-" + ((.file.path | split("/")) | .[-2]) + "-file"
+            branch: |-
+              .repo.path_with_namespace + "/" + .repo.default_branch | gsub(" "; "")
+
+  # ── SKILL.md → skill (metadata + relations) ────────────────────────────────
+  - kind: file
+    selector:
+      query: 'true'
+      files:
+        path: SKILL.md
+    port:
+      entity:
+        mappings:
+          identifier: |-
+            .repo.name + "-" + ((.file.path | split("/")) | .[-2])
+          title: |-
+            ((.file.path | split("/")) | .[-2]) | gsub("-"; " ")
+          blueprint: '"skill"'
+          properties:
+            location: |-
+              if (.file.path | test("^\\.cursor/skills/")) then "global"
+              elif (.file.path | test("(^|/)skills/")) then "project"
+              else "project" end
+            scope: |-
+              if (.file.path | test("^\\.cursor/skills/")) then "global"
+              elif (.file.path | test("(^|/)skills/")) then "project"
+              else "personal" end
+            status: '"active"'
+            category: '"other"'
+          relations:
+            skill_version: |-
+              .repo.name + "-" + ((.file.path | split("/")) | .[-2])
+            sourceRepo: .repo.name
+            sharedWithGroups: |-
+              .repo.shared_with_groups | map(
+                .group_full_path | split("/") | .[0] |
+                if . == "account" then "Accounts"
+                elif . == "mops" then "Mops"
+                else (. | split("_") | map(.[0:1] | ascii_upcase) + .[1:] | join("_"))
+                end
+              ) | unique
+
+  # ── references → skill ─────────────────────────────────────────────────────
+  - kind: file
+    selector:
+      query: .file.path | test("skills/.+/references/.+\\.(md|mdx)$") or (.file.path | test("\\.cursor/skills/.+/references/.+\\.(md|mdx)$"))
+      files:
+        path: references/*.*
+    port:
+      entity:
+        mappings:
+          identifier: |-
+            .repo.name + "-" + ((.file.path | split("/")) | .[-3])
+          title: |-
+            ((.file.path | split("/")) | .[-3]) | gsub("-"; " ")
+          blueprint: '"skill"'
+          properties:
+            references: |-
+              [
+                {
+                  path: (.file.path | split("/") | .[-2:] | join("/")),
+                  content: .file.content
+                }
+              ]
+          relations:
+            sourceRepo: .repo.name
+
+  # ── scripts → skill ────────────────────────────────────────────────────────
+  - kind: file
+    selector:
+      query: .file.path | test("skills/.+/scripts/.+") or (.file.path | test("\\.cursor/skills/.+/scripts/.+"))
+      files:
+        path: scripts/*.*
+    port:
+      entity:
+        mappings:
+          identifier: |-
+            .repo.name + "-" + ((.file.path | split("/")) | .[-3])
+          title: |-
+            ((.file.path | split("/")) | .[-3]) | gsub("-"; " ")
+          blueprint: '"skill"'
+          properties:
+            scripts: |-
+              [
+                {
+                  path: (.file.path | split("/") | .[-2:] | join("/")),
+                  content: .file.content
+                }
+              ]
+          relations:
+            sourceRepo: .repo.name
+
+  # ── assets (commands) → skill ──────────────────────────────────────────────
+  - kind: file
+    selector:
+      query: .file.path | test("skills/.+/assets/.+") or (.file.path | test("\\.cursor/skills/.+/assets/.+"))
+      files:
+        path: assets/*.*
+    port:
+      entity:
+        mappings:
+          identifier: |-
+            .repo.name + "-" + ((.file.path | split("/")) | .[-3])
+          title: |-
+            ((.file.path | split("/")) | .[-3]) | gsub("-"; " ")
+          blueprint: '"skill"'
+          properties:
+            assets: |-
+              [
+                {
+                  path: (.file.path | split("/") | .[-2:] | join("/")),
+                  content: .file.content
+                }
+              ]
+          relations:
+            sourceRepo: .repo.name
+
+  # ── additional files → skill ───────────────────────────────────────────────
+  - kind: file
+    selector:
+      query: >-
+        (.file.path | test("skills/.+/.+") or (.file.path | test("\\.cursor/skills/.+/.+")))
+        and (.file.path | test("SKILL\\.md|/references/|/scripts/|/assets/") | not)
+      files:
+        path: "**/*"
+    port:
+      entity:
+        mappings:
+          identifier: |-
+            .repo.name + "-" + ((.file.path | split("/")) | .[-2])
+          title: |-
+            ((.file.path | split("/")) | .[-2]) | gsub("-"; " ")
+          blueprint: '"skill"'
+          properties:
+            additional_files: |-
+              [
+                {
+                  path: (.file.path | split("/") | .[-1]),
+                  content: .file.content
+                }
+              ]
+          relations:
+            sourceRepo: .repo.name
