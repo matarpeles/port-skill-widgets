@@ -71,6 +71,7 @@ function makeConfig(entry, outputFile, templateFile) {
 }
 
 module.exports = [
-  makeConfig('./src-catalog/index.tsx',            'catalog.html',            './src-catalog/index.html'),
-  makeConfig('./src-skill-request-form/index.tsx',  'skill-request-form.html', './src-skill-request-form/index.html'),
+  makeConfig('./src-catalog/index.tsx',             'catalog.html',             './src-catalog/index.html'),
+  makeConfig('./src-skill-request-form/index.tsx',  'skill-request-form.html',  './src-skill-request-form/index.html'),
+  makeConfig('./src-optimize-skills/index.tsx',     'optimize-skills.html',     './src-optimize-skills/index.html'),
 ];
