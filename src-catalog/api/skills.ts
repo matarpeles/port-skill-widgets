@@ -3,7 +3,6 @@ import {
   REL_FILE_TO_VERSION,
   REL_REQUESTER,
   REL_SKILL_GROUP,
-  REL_TARGET_SKILL_FILES,
   REL_VERSION_TO_SKILL,
   SKILL_FILE_BLUEPRINT,
   SKILL_VERSION_BLUEPRINT,
@@ -177,8 +176,8 @@ export async function createSkillRequest(
 
   const relations: Record<string, string | string[]> = {};
   if (payload.skillGroupId) relations[REL_SKILL_GROUP] = payload.skillGroupId;
-  if (payload.requestType === "update" && payload.targetSkillFileIds.length > 0) {
-    relations[REL_TARGET_SKILL_FILES] = payload.targetSkillFileIds;
+  if (payload.requestType === "update" && payload.targetSkillId) {
+    relations["target_skill"] = payload.targetSkillId;
   }
   if (payload.requesterEmail) relations[REL_REQUESTER] = payload.requesterEmail;
 

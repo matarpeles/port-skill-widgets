@@ -5,8 +5,8 @@
  * (documented in README → Prerequisites). The three blueprints an operator
  * can re-point live in upload-params.json (skill_request, skill, skill_group).
  */
-export const SKILL_VERSION_BLUEPRINT = "skill_version";
-export const SKILL_FILE_BLUEPRINT = "skill_file";
+export const SKILL_VERSION_BLUEPRINT = "skillVersion";
+export const SKILL_FILE_BLUEPRINT = "skillFile";
 
 /** Relation on skill_file → skill_version. */
 export const REL_FILE_TO_VERSION = "skill_file_to_skill_version";

@@ -22,11 +22,11 @@
   "calculationProperties": {},
   "aggregationProperties": {},
   "relations": {
-    "skillVersion": {
+    "skill_file_to_skill_version": {
       "title": "Skill Version",
       "description": "The skill version this file belongs to",
       "target": "skillVersion",
-      "required": true,
+      "required": false,
       "many": false
     }
   }

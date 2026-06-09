@@ -17,33 +17,14 @@
     },
     "required": ["version"]
   },
-  "mirrorProperties": {
-    "commit_date": {
-      "title": "Commit Date",
-      "path": "branch.last_commit_date"
-    }
-  },
+  "mirrorProperties": {},
   "calculationProperties": {},
   "aggregationProperties": {},
   "relations": {
-    "skill": {
+    "skill_version_to_skill": {
       "title": "Skill",
       "description": "The parent skill this version belongs to",
       "target": "skill",
-      "required": true,
-      "many": false
-    },
-    "skillFile": {
-      "title": "Skill File",
-      "description": "The SKILL.md file for this version",
-      "target": "skillFile",
-      "required": false,
-      "many": false
-    },
-    "branch": {
-      "title": "Branch",
-      "description": "The GitLab branch this version was committed to",
-      "target": "gitlabBranch",
       "required": false,
       "many": false
     }

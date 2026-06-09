@@ -115,6 +115,8 @@ export type SubmitPayload = {
   skillGroupId?: string;
   /** Identifiers of the existing skill_file entities being updated. */
   targetSkillFileIds: string[];
+  /** Port identifier of the existing skill entity being updated (update requests only). */
+  targetSkillId?: string;
   requesterEmail?: string;
 };
 
