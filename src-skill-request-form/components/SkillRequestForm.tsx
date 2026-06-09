@@ -96,6 +96,7 @@ export function SkillRequestForm({
           changeSummary: changeSummary.trim(),
           location,
           skillGroupId: skillGroupId || undefined,
+          targetSkillId: context.skillPath,
           requesterEmail,
         })
       ),

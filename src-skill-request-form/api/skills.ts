@@ -1,9 +1,6 @@
 import { DEV_MOCK } from "../hooks/usePostMessageData";
 import {
   REL_FILE_TO_VERSION,
-  REL_REQUESTER,
-  REL_SKILL_GROUP,
-  REL_TARGET_SKILL_FILES,
   REL_VERSION_TO_SKILL,
   SKILL_FILE_BLUEPRINT,
   SKILL_VERSION_BLUEPRINT,
@@ -168,65 +165,86 @@ function pickLatest(versions: PortEntity[]): PortEntity {
 }
 
 /** Create a skill_request entity. Workflow finalizes downstream fields on approval. */
+/**
+ * Submit a skill request by triggering a Port self-service action.
+ * Using actions instead of direct entity creation enforces permissions
+ * and keeps the invocation logic in Port rather than the widget.
+ *
+ * - Create requests trigger `config.createActionIdentifier`
+ * - Update requests trigger `config.updateActionIdentifier` (day-2 on the skill entity)
+ *
+ * Returns the `skill_request` entity identifier so the caller can build a link.
+ * For updates the identifier is deterministic: `skill_req_update_{skillId}`.
+ * For creates the widget generates it before calling so it can build the URL.
+ */
 export async function createSkillRequest(
   ctx: ApiContext,
   config: PluginConfig,
   payload: SubmitPayload
 ): Promise<{ identifier: string }> {
-  const now = new Date().toISOString();
-
-  const relations: Record<string, string | string[]> = {};
-  if (payload.skillGroupId) relations[REL_SKILL_GROUP] = payload.skillGroupId;
-  if (payload.requestType === "update" && payload.targetSkillFileIds.length > 0) {
-    relations[REL_TARGET_SKILL_FILES] = payload.targetSkillFileIds;
-  }
-  if (payload.requesterEmail) relations[REL_REQUESTER] = payload.requesterEmail;
-
-  const properties: Record<string, unknown> = {
-    request_type: payload.requestType,
-    status: "pending_review",
-    skill_name: payload.skillName,
-    skill_content: payload.content,
-    files: payload.files,
-    create_method: payload.createMethod,
-    change_summary: payload.changeSummary,
-    location: payload.location,
-    source: "port_ui",
-    version: now,
-    submitted_at: now,
-  };
-  if (payload.aiPrompt) properties.ai_prompt = payload.aiPrompt;
-
-  const body = {
-    title: `${payload.requestType === "create" ? "New" : "Update"}: ${payload.skillName}`,
-    properties,
-    relations,
-  };
-
   if (DEV_MOCK) {
     await new Promise((r) => setTimeout(r, 250));
     return { identifier: `mock-skill-request-${Date.now()}` };
   }
 
-  const res = await fetch(
-    `${ctx.baseUrl}/v1/blueprints/${encodeURIComponent(
-      config.skillRequestBlueprint
-    )}/entities?upsert=true&create_missing_related_entities=true`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${ctx.token}`,
-        "Content-Type": "application/json",
+  if (payload.requestType === "update") {
+    const entityIdentifier = `skill_req_update_${payload.targetSkillId}`;
+
+    await triggerActionRun(ctx, {
+      action: config.updateActionIdentifier,
+      entity: payload.targetSkillId,
+      properties: {
+        skill_content: payload.content,
+        change_summary: payload.changeSummary,
+        skill_group: payload.skillGroupId,
+        location: payload.location,
+        create_method: payload.createMethod,
+        requester: payload.requesterEmail,
       },
-      body: JSON.stringify(body),
-    }
-  );
+    });
+
+    return { identifier: entityIdentifier };
+  }
+
+  // Create request — generate the entity identifier here so we can link to it.
+  const entityIdentifier = `skill_req_create_${Date.now()}`;
+
+  await triggerActionRun(ctx, {
+    action: config.createActionIdentifier,
+    properties: {
+      entity_identifier: entityIdentifier,
+      skill_name: payload.skillName,
+      skill_content: payload.content,
+      change_summary: payload.changeSummary,
+      skill_group: payload.skillGroupId,
+      location: payload.location,
+      create_method: payload.createMethod,
+      requester: payload.requesterEmail,
+    },
+  });
+
+  return { identifier: entityIdentifier };
+}
+
+async function triggerActionRun(
+  ctx: ApiContext,
+  body: {
+    action: string;
+    entity?: string;
+    properties: Record<string, unknown>;
+  }
+): Promise<void> {
+  const res = await fetch(`${ctx.baseUrl}/v1/actions/runs`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${ctx.token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
 
   if (!res.ok) {
     const text = await res.text().catch(() => "");
     throw new Error(`Port API ${res.status}:\n${text}`);
   }
-
-  const data = await res.json();
-  return { identifier: data?.entity?.identifier ?? "" };
 }

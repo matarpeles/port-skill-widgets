@@ -9,6 +9,18 @@
     "isRequired": false,
     "label": "Skill group blueprint"
   },
+  "createActionIdentifier": {
+    "type": "string",
+    "isRequired": false,
+    "label": "Create action identifier",
+    "description": "Self-service action used to submit new skill create requests. Defaults to 'submit-skill-create-request'."
+  },
+  "updateActionIdentifier": {
+    "type": "string",
+    "isRequired": false,
+    "label": "Update action identifier",
+    "description": "Self-service action (day-2 on skill) used to propose skill updates. Defaults to 'suggest-skill-update-ssa'."
+  },
   "aiAgentIdentifier": {
     "type": "string",
     "isRequired": false,
