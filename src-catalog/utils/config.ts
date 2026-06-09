@@ -5,6 +5,9 @@ import {
 } from "../constants";
 import type { Params, ParamValue, PluginConfig } from "../types";
 
+const DEFAULT_CREATE_ACTION = "submit-skill-create-request";
+const DEFAULT_UPDATE_ACTION = "suggest-skill-update-ssa";
+
 /** A plain string/number param value, defaulting to "". */
 function stringParam(param: ParamValue | undefined): string {
   if (!param) return "";
@@ -37,6 +40,10 @@ export function configFromParams(params: Params): PluginConfig {
       params["skillGroupBlueprint"],
       DEFAULT_SKILL_GROUP_BLUEPRINT
     ),
+    createActionIdentifier:
+      stringParam(params["createActionIdentifier"]) || DEFAULT_CREATE_ACTION,
+    updateActionIdentifier:
+      stringParam(params["updateActionIdentifier"]) || DEFAULT_UPDATE_ACTION,
     aiAgentIdentifier: stringParam(params["aiAgentIdentifier"]),
   };
 }

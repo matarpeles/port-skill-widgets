@@ -39,6 +39,10 @@ export type PluginConfig = {
   skillRequestBlueprint: string;
   skillBlueprint: string;
   skillGroupBlueprint: string;
+  /** Self-service action identifier for submitting new skill create requests. */
+  createActionIdentifier: string;
+  /** Self-service action identifier (day-2 on skill) for proposing skill updates. */
+  updateActionIdentifier: string;
   /** Optional: route AI drafting through a specific agent instead of /v1/ai/invoke. */
   aiAgentIdentifier: string;
 };
