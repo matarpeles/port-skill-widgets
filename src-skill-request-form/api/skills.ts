@@ -234,14 +234,18 @@ async function triggerActionRun(
     properties: Record<string, unknown>;
   }
 ): Promise<void> {
-  const res = await fetch(`${ctx.baseUrl}/v1/actions/runs`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${ctx.token}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
+  const { action, ...rest } = body;
+  const res = await fetch(
+    `${ctx.baseUrl}/v1/actions/${encodeURIComponent(action)}/runs`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${ctx.token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(rest),
+    }
+  );
 
   if (!res.ok) {
     const text = await res.text().catch(() => "");
