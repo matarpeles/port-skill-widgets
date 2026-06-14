@@ -1,8 +1,8 @@
 {
   "skillBlueprint": {
-    "type": "blueprint",
+    "type": "string",
     "isRequired": false,
     "label": "Skill blueprint",
-    "description": "The blueprint of the skill entity. Defaults to 'skill'."
+    "description": "Blueprint identifier for skills. Defaults to '_skill'."
   }
 }

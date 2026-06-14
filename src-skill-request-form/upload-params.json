@@ -1,18 +1,21 @@
 {
   "skillRequestBlueprint": {
-    "type": "blueprint",
-    "isRequired": true,
-    "label": "Skill request blueprint"
+    "type": "string",
+    "isRequired": false,
+    "label": "Skill request blueprint",
+    "description": "Blueprint identifier for skill requests. Defaults to 'skill_request'."
   },
   "skillBlueprint": {
-    "type": "blueprint",
-    "isRequired": true,
-    "label": "Skill blueprint"
+    "type": "string",
+    "isRequired": false,
+    "label": "Skill blueprint",
+    "description": "Blueprint identifier for skills. Defaults to '_skill'."
   },
   "skillGroupBlueprint": {
-    "type": "blueprint",
-    "isRequired": true,
-    "label": "Skill group blueprint"
+    "type": "string",
+    "isRequired": false,
+    "label": "Skill group blueprint",
+    "description": "Blueprint identifier for skill groups. Defaults to '_skill_group'."
   },
   "createActionIdentifier": {
     "type": "string",
