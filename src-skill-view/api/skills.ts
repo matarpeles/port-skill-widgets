@@ -8,8 +8,8 @@ export type SkillFile = {
 
 type ApiContext = { baseUrl: string; token: string };
 
-const SKILL_VERSION_BLUEPRINT = "skillVersion";
-const SKILL_FILE_BLUEPRINT = "skillFile";
+const SKILL_VERSION_BLUEPRINT = "_skill_version";
+const SKILL_FILE_BLUEPRINT = "_skill_file";
 const REL_VERSION_TO_SKILL = "skill_version_to_skill";
 const REL_FILE_TO_VERSION = "skill_file_to_skill_version";
 
