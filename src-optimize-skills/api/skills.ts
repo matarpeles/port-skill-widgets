@@ -10,7 +10,7 @@ export async function fetchSkills(
   token: string
 ): Promise<SkillEntity[]> {
   const res = await fetch(
-    `${baseUrl}/v1/blueprints/skill/entities/search`,
+    `${baseUrl}/v1/blueprints/_skill/entities/search`,
     {
       method: 'POST',
       headers: {
