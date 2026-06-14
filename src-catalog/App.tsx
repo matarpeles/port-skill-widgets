@@ -174,14 +174,14 @@ function HexBadge({ score, passed, total }: { score: number; passed: number; tot
   );
 }
 
-function SkillCard({ skill, onEdit }: { skill: SkillEntity; onEdit: () => void }) {
+function SkillCard({ skill, skillBlueprint, onEdit }: { skill: SkillEntity; skillBlueprint: string; onEdit: () => void }) {
   const p = skill.properties;
   const { score, passed, total } = computeReadiness(p);
   const agent = skill.relations?.ai_agent;
   const scope = p.scope ?? p.location ?? '';
   const category = (p.category ?? 'other') as CategoryKey;
   const scoreCol = scoreColor(score);
-  const entityUrl = buildEntityPageUrl('skill', skill.identifier);
+  const entityUrl = buildEntityPageUrl(skillBlueprint, skill.identifier);
 
   const CategoryIcon = CATEGORY_ICONS[category] ?? LayoutGrid;
   const ScopeIcon = SCOPE_ICONS[scope] ?? null;
@@ -259,13 +259,13 @@ function CatalogInner() {
     if (!portToken || !portApiBaseUrl) return;
     setLoading(true);
     setError(null);
-    fetch(`${portApiBaseUrl}/v1/blueprints/skill/entities`, {
+    fetch(`${portApiBaseUrl}/v1/blueprints/${encodeURIComponent(config.skillBlueprint)}/entities`, {
       headers: { Authorization: `Bearer ${portToken}` },
     })
       .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
       .then(d => { setEntities(d.entities ?? []); setLoading(false); })
       .catch(e => { setError(e.message); setLoading(false); });
-  }, [portToken, portApiBaseUrl]);
+  }, [portToken, portApiBaseUrl, config.skillBlueprint]);
 
   useEffect(() => { fetchEntities(); }, [fetchEntities]);
 
@@ -397,6 +397,7 @@ function CatalogInner() {
                   <SkillCard
                     key={skill.identifier}
                     skill={skill}
+                    skillBlueprint={config.skillBlueprint}
                     onEdit={() => setModal({ type: 'update', skill })}
                   />
                 ))}
