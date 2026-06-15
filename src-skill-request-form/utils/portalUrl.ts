@@ -11,6 +11,11 @@ export function getPortalOrigin(): string {
   return DEFAULT_PORTAL_ORIGIN;
 }
 
+/** Workflow run page — Port portal route: /organization/runs/{runId} */
+export function buildRunUrl(runId: string): string {
+  return `${getPortalOrigin()}/organization/runs/${encodeURIComponent(runId)}`;
+}
+
 /** Entity page — Port portal route: {blueprint}Entity?identifier={entityId} */
 export function buildEntityPageUrl(
   blueprintIdentifier: string,

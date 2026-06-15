@@ -19,7 +19,7 @@ import type {
   SkillFileType,
   SkillGroupOption,
 } from "../types";
-import { buildEntityPageUrl } from "../utils/portalUrl";
+import { buildRunUrl } from "../utils/portalUrl";
 import {
   defaultPath,
   makeFile,
@@ -132,8 +132,8 @@ export function SkillRequestForm({
 
   const createdUrl = useMemo(() => {
     if (!mutation.data?.identifier) return null;
-    return buildEntityPageUrl(config.skillRequestBlueprint, mutation.data.identifier);
-  }, [mutation.data, config.skillRequestBlueprint]);
+    return buildRunUrl(mutation.data.identifier);
+  }, [mutation.data]);
 
   if (mutation.isSuccess) {
     return (

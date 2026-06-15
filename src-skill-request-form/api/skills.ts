@@ -193,46 +193,26 @@ export async function createSkillRequest(
   // are supported in one request — not just SKILL.md.
   const files = serializeFiles(payload);
 
-  if (payload.requestType === "update") {
-    const entityIdentifier = `skill_req_update_${payload.targetSkillId}`;
+  // Inputs match the skill-request-full workflow's SELF_SERVE_TRIGGER schema.
+  // Only send declared inputs — unknown keys fail workflow input validation.
+  const inputs: Record<string, unknown> = {
+    skill_name: payload.skillName,
+    skill_content: payload.content,
+    files,
+    change_summary: payload.changeSummary || `Update ${payload.skillName}`,
+    create_method: payload.createMethod,
+  };
+  if (payload.skillGroupId) inputs.skill_group = payload.skillGroupId;
+  if (payload.requesterEmail) inputs.requester = payload.requesterEmail;
+  if (payload.aiPrompt) inputs.ai_prompt = payload.aiPrompt;
 
-    await triggerActionRun(ctx, {
-      action: config.updateActionIdentifier,
-      entity: payload.targetSkillId,
-      properties: {
-        skill_name: payload.skillName,
-        skill_content: payload.content,
-        files,
-        change_summary: payload.changeSummary,
-        skill_group: payload.skillGroupId,
-        location: payload.location,
-        create_method: payload.createMethod,
-        requester: payload.requesterEmail,
-      },
-    });
+  const workflow =
+    payload.requestType === "update"
+      ? config.updateActionIdentifier
+      : config.createActionIdentifier;
 
-    return { identifier: entityIdentifier };
-  }
-
-  // Create request — generate the entity identifier here so we can link to it.
-  const entityIdentifier = `skill_req_create_${Date.now()}`;
-
-  await triggerActionRun(ctx, {
-    action: config.createActionIdentifier,
-    properties: {
-      entity_identifier: entityIdentifier,
-      skill_name: payload.skillName,
-      skill_content: payload.content,
-      files,
-      change_summary: payload.changeSummary,
-      skill_group: payload.skillGroupId,
-      location: payload.location,
-      create_method: payload.createMethod,
-      requester: payload.requesterEmail,
-    },
-  });
-
-  return { identifier: entityIdentifier };
+  const { runId } = await triggerWorkflowRun(ctx, workflow, inputs);
+  return { identifier: runId };
 }
 
 /**
@@ -248,24 +228,25 @@ function serializeFiles(payload: SubmitPayload): string {
   return JSON.stringify(all);
 }
 
-async function triggerActionRun(
+/**
+ * Trigger a self-serve workflow run. Workflows live at /v1/workflows/{id}/runs
+ * (not /v1/actions/{id}/runs) and take `inputs`, not `properties`.
+ * Returns the workflow run identifier so the caller can link to the run.
+ */
+async function triggerWorkflowRun(
   ctx: ApiContext,
-  body: {
-    action: string;
-    entity?: string;
-    properties: Record<string, unknown>;
-  }
-): Promise<void> {
-  const { action, ...rest } = body;
+  workflow: string,
+  inputs: Record<string, unknown>
+): Promise<{ runId: string }> {
   const res = await fetch(
-    `${ctx.baseUrl}/v1/actions/${encodeURIComponent(action)}/runs`,
+    `${ctx.baseUrl}/v1/workflows/${encodeURIComponent(workflow)}/runs`,
     {
       method: "POST",
       headers: {
         Authorization: `Bearer ${ctx.token}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(rest),
+      body: JSON.stringify({ inputs }),
     }
   );
 
@@ -273,4 +254,9 @@ async function triggerActionRun(
     const text = await res.text().catch(() => "");
     throw new Error(`Port API ${res.status}:\n${text}`);
   }
+
+  const data = await res.json().catch(() => ({} as Record<string, unknown>));
+  const run = (data.workflowRun ?? data.run ?? {}) as Record<string, unknown>;
+  const runId = String(run.identifier ?? run.id ?? data.identifier ?? "");
+  return { runId };
 }
