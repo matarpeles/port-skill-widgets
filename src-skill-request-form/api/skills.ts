@@ -187,6 +187,12 @@ export async function createSkillRequest(
     return { identifier: `mock-skill-request-${Date.now()}` };
   }
 
+  // Serialize the full proposed file set (SKILL.md + supporting files) into a
+  // single JSON string. The skill_request `files` property and the
+  // skill-request-view widget read this to render all files, so multiple files
+  // are supported in one request — not just SKILL.md.
+  const files = serializeFiles(payload);
+
   if (payload.requestType === "update") {
     const entityIdentifier = `skill_req_update_${payload.targetSkillId}`;
 
@@ -195,6 +201,7 @@ export async function createSkillRequest(
       entity: payload.targetSkillId,
       properties: {
         skill_content: payload.content,
+        files,
         change_summary: payload.changeSummary,
         skill_group: payload.skillGroupId,
         location: payload.location,
@@ -215,6 +222,7 @@ export async function createSkillRequest(
       entity_identifier: entityIdentifier,
       skill_name: payload.skillName,
       skill_content: payload.content,
+      files,
       change_summary: payload.changeSummary,
       skill_group: payload.skillGroupId,
       location: payload.location,
@@ -224,6 +232,19 @@ export async function createSkillRequest(
   });
 
   return { identifier: entityIdentifier };
+}
+
+/**
+ * Build the JSON string stored in the skill_request `files` property. Includes
+ * the SKILL.md (as type "skill_md") plus every supporting file, so the
+ * request-view widget can render the complete proposed bundle.
+ */
+function serializeFiles(payload: SubmitPayload): string {
+  const all = [
+    { path: "SKILL.md", content: payload.content, type: "skill_md" as const },
+    ...payload.files,
+  ];
+  return JSON.stringify(all);
 }
 
 async function triggerActionRun(
