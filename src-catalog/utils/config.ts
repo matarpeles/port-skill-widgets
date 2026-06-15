@@ -5,8 +5,11 @@ import {
 } from "../constants";
 import type { Params, ParamValue, PluginConfig } from "../types";
 
-const DEFAULT_CREATE_ACTION = "submit-skill-create-request";
-const DEFAULT_UPDATE_ACTION = "suggest-skill-update-ssa";
+// Both create and update route through the full lifecycle workflow
+// (submit -> review -> approval gate -> apply). It reads the request's `files`
+// JSON to apply content, so the widget and workflow share one data contract.
+const DEFAULT_CREATE_ACTION = "skill-request-full";
+const DEFAULT_UPDATE_ACTION = "skill-request-full";
 
 /** A plain string/number param value, defaulting to "". */
 function stringParam(param: ParamValue | undefined): string {

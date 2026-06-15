@@ -200,6 +200,7 @@ export async function createSkillRequest(
       action: config.updateActionIdentifier,
       entity: payload.targetSkillId,
       properties: {
+        skill_name: payload.skillName,
         skill_content: payload.content,
         files,
         change_summary: payload.changeSummary,
