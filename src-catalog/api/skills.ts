@@ -190,9 +190,15 @@ export async function createSkillRequest(
   // The workflow stores this on the request entity and applies content from it.
   const files = serializeFiles(payload);
 
+  // Generate the request entity id here and pass it to the workflow so the
+  // widget can link to the created request (the workflow uses request_id as the
+  // skill_request identifier). Returned to the caller to build the link.
+  const entityIdentifier = `skill-req-${slugify(payload.skillName)}-${Date.now()}`;
+
   // Inputs match the skill-request-full workflow's SELF_SERVE_TRIGGER schema.
   // Only send declared inputs — unknown keys fail workflow input validation.
   const inputs: Record<string, unknown> = {
+    request_id: entityIdentifier,
     skill_name: payload.skillName,
     skill_content: payload.content,
     files,
@@ -208,8 +214,13 @@ export async function createSkillRequest(
       ? config.updateActionIdentifier
       : config.createActionIdentifier;
 
-  const { runId } = await triggerWorkflowRun(ctx, workflow, inputs);
-  return { identifier: runId };
+  await triggerWorkflowRun(ctx, workflow, inputs);
+  return { identifier: entityIdentifier };
+}
+
+/** kebab-case a skill name for use in an entity identifier. */
+function slugify(name: string): string {
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
 }
 
 /**

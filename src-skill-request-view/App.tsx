@@ -1,7 +1,10 @@
 import React, { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { usePostMessageData } from "./hooks/usePostMessageData";
+import { fetchCurrentFiles, type CurrentFile } from "./api/currentFiles";
+import { DiffView } from "./components/DiffView";
 
 /* ── Types ── */
 
@@ -18,6 +21,8 @@ type FileGroup = {
   label: string;
   files: SkillFile[];
 };
+
+type Tab = "diff" | "content";
 
 const GROUP_ORDER: Exclude<SkillFile["type"], "skill_md">[] = [
   "reference",
@@ -42,16 +47,14 @@ function classifyPath(path: string): SkillFileType {
   return "other";
 }
 
+function baseName(path: string): string {
+  return (path.split("/").pop() || path || "").toLowerCase();
+}
+
 /**
- * Parse the proposed files for a skill_request entity.
- *
- * The submit/update self-service actions serialize the full file set
- * (SKILL.md + any supporting files) into the `files` property as a JSON
- * array of { path, content, type }. We render that directly — no blueprint
- * traversal, because a skill_request holds its own proposed content.
- *
- * Falls back to the `skill_content` property as a single SKILL.md file for
- * older requests that predate multi-file `files`.
+ * Parse the proposed files for a skill_request entity from its `files` JSON
+ * property (array of {path, content, type}), with a `skill_content` fallback
+ * for older single-file requests.
  */
 function parseFiles(props: Record<string, unknown>): SkillFile[] {
   const raw = props.files;
@@ -83,6 +86,22 @@ function parseFiles(props: Record<string, unknown>): SkillFile[] {
   }
 
   return out;
+}
+
+/** target_skill relation may arrive as a string id or an object with identifier. */
+function targetSkillId(relations: Record<string, unknown> | undefined): string | undefined {
+  const rel = relations?.target_skill;
+  if (typeof rel === "string" && rel) return rel;
+  if (rel && typeof rel === "object") {
+    const id = (rel as { identifier?: string }).identifier;
+    if (id) return id;
+  }
+  if (Array.isArray(rel) && rel.length) {
+    const first = rel[0];
+    if (typeof first === "string") return first;
+    if (first && typeof first === "object") return (first as { identifier?: string }).identifier;
+  }
+  return undefined;
 }
 
 function buildGroups(files: SkillFile[]): { skillMd: SkillFile | undefined; groups: FileGroup[] } {
@@ -211,7 +230,7 @@ function FileNav({
   );
 }
 
-function FileContent({ file }: { file: SkillFile }) {
+function MarkdownOrRaw({ file }: { file: SkillFile }) {
   if (isMarkdown(file)) {
     return (
       <div className="markdown-body">
@@ -219,9 +238,7 @@ function FileContent({ file }: { file: SkillFile }) {
       </div>
     );
   }
-  return (
-    <pre className="raw-content">{file.content}</pre>
-  );
+  return <pre className="raw-content">{file.content}</pre>;
 }
 
 /* ── Main app ── */
@@ -229,6 +246,18 @@ function FileContent({ file }: { file: SkillFile }) {
 export default function App() {
   const { entity, portToken, portApiBaseUrl } = usePostMessageData();
   const [selectedPath, setSelectedPath] = useState<string | null>(null);
+  const [tab, setTab] = useState<Tab>("diff");
+
+  const skillId = targetSkillId(entity?.relations);
+  const ctx = { baseUrl: portApiBaseUrl ?? "", token: portToken ?? "" };
+  const canFetchCurrent = !!portApiBaseUrl && !!portToken && !!skillId;
+
+  const currentQuery = useQuery({
+    queryKey: ["request-view-current", skillId, portToken],
+    queryFn: () => fetchCurrentFiles(ctx, skillId!),
+    enabled: canFetchCurrent,
+    staleTime: 60 * 1000,
+  });
 
   if (!portApiBaseUrl || !portToken) return <Spinner msg="Connecting to Port…" />;
   if (!entity?.identifier) {
@@ -246,9 +275,13 @@ export default function App() {
   const { skillMd, groups } = buildGroups(files);
   const hasSupporting = groups.length > 0;
 
-  // Default selection: SKILL.md, or first file
   const activePath = selectedPath ?? skillMd?.path ?? files[0]?.path ?? "";
   const activeFile = files.find((f) => f.path === activePath) ?? files[0];
+
+  // Match the proposed file to its current counterpart by file name.
+  const currentFiles: CurrentFile[] = currentQuery.data ?? [];
+  const currentMatch = currentFiles.find((f) => baseName(f.path) === baseName(activeFile.path));
+  const baselineContent = currentMatch?.content ?? "";
 
   const requestType = props.request_type as string | undefined;
   const status = props.status as string | undefined;
@@ -268,7 +301,7 @@ export default function App() {
         </div>
       </div>
 
-      {/* Body: nav + content (nav only shown when supporting files exist) */}
+      {/* Body: nav + content */}
       <div className={`viewer-body ${hasSupporting ? "viewer-body-split" : ""}`}>
         {hasSupporting && (
           <FileNav
@@ -280,7 +313,36 @@ export default function App() {
         )}
 
         <div className="content-pane">
-          {activeFile && <FileContent file={activeFile} />}
+          <div className="tabs" role="tablist">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={tab === "diff"}
+              className={tab === "diff" ? "tab active" : "tab"}
+              onClick={() => setTab("diff")}
+            >
+              Diff
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={tab === "content"}
+              className={tab === "content" ? "tab active" : "tab"}
+              onClick={() => setTab("content")}
+            >
+              Proposed
+            </button>
+          </div>
+
+          {tab === "diff" ? (
+            currentQuery.isLoading ? (
+              <Spinner msg="Loading current version…" />
+            ) : (
+              <DiffView oldText={baselineContent} newText={activeFile.content} />
+            )
+          ) : (
+            <MarkdownOrRaw file={activeFile} />
+          )}
         </div>
       </div>
     </div>

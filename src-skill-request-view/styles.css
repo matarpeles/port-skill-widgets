@@ -292,3 +292,71 @@ body {
 /* ── Spinner ── */
 @keyframes spin { to { transform: rotate(360deg); } }
 .spinner { animation: spin 0.8s linear infinite; }
+
+/* ── Tabs ── */
+.tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid #e5e7eb;
+}
+.tab {
+  appearance: none;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 6px 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #6b7280;
+  cursor: pointer;
+}
+.tab:hover { color: #1f2937; }
+.tab.active {
+  color: #1f2937;
+  border-bottom-color: #1f2937;
+}
+
+/* ── Diff ── */
+.diff {
+  display: flex;
+  flex-direction: column;
+}
+.diff-stats {
+  display: flex;
+  gap: 12px;
+  padding: 8px 0;
+  font-family: ui-monospace, monospace;
+  font-weight: 600;
+}
+.diff-added-count { color: #15803d; }
+.diff-removed-count { color: #b91c1c; }
+.diff-body {
+  overflow: auto;
+  padding: 6px 0;
+  margin: 0;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #f9fafb;
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  font-size: 12.5px;
+  line-height: 1.55;
+}
+.diff-line {
+  display: flex;
+  gap: 8px;
+  padding: 0 12px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.diff-sign {
+  flex: 0 0 10px;
+  color: #9ca3af;
+  user-select: none;
+}
+.diff-content { flex: 1; }
+.diff-added { background: rgba(22, 163, 74, 0.14); }
+.diff-added .diff-sign { color: #15803d; }
+.diff-removed { background: rgba(220, 38, 38, 0.12); }
+.diff-removed .diff-sign { color: #b91c1c; }
+.muted { color: #6b7280; font-size: 13px; }
